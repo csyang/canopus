@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    // ── Compilation target ───────────────────────────────────────────────
+    // ES2022 gives us top-level await, class fields, and Array.at() —
+    // all safe in Electron's Chromium and Node ≥18.
+    "target": "ES2022",
+
+    // ── Module system ────────────────────────────────────────────────────
+    // NodeNext matches package.json "type": "module" and resolves
+    // .js extensions correctly in ESM import paths.
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+
+    // ── JSX ──────────────────────────────────────────────────────────────
+    // react-jsx uses the automatic JSX transform (React 17+).
+    // No need to import React at the top of every .tsx file.
+    "jsx": "react-jsx",
+
+    // ── Output ───────────────────────────────────────────────────────────
+    "outDir": "./dist",
+    "rootDir": "./",
+    "sourceMap": true,        // enable for Electron DevTools debugging
+
+    // ── Strict mode ──────────────────────────────────────────────────────
+    // Applied to all .ts/.tsx files. New code gets full type safety.
+    "strict": true,
+    "noUncheckedIndexedAccess": true,   // array[i] returns T | undefined
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    // ── JavaScript interop ───────────────────────────────────────────────
+    // Existing .js/.jsx files are included in the build but not type-checked.
+    // They pass through to dist/ unchanged.
+    // Set checkJs: true on a file-by-file basis using // @ts-check
+    // at the top of the file when you're ready to migrate it.
+    "allowJs": true,
+    "checkJs": false,
+
+    // ── Library and interop ──────────────────────────────────────────────
+    "lib": ["ES2022", "DOM"],
+    "skipLibCheck": true,           // speeds up compilation; safe for third-party types
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true       // allows import of manifest.schema.json
+  },
+
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx"
+  ],
+
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

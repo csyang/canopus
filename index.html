@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+  <!--
+    Content Security Policy
+    Tightened for Electron — no inline scripts, no remote script sources.
+    elkjs runs as a bundled module; no CDN scripts needed.
+    'unsafe-eval' is required for elkjs's WebAssembly layout worker.
+  -->
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="
+      default-src 'self';
+      script-src  'self' 'unsafe-eval';
+      style-src   'self' 'unsafe-inline';
+      font-src    'self' data:;
+      img-src     'self' data:;
+      connect-src 'self';
+    "
+  />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="/assets/icon.png" />
+  <title>Canopus</title>
+
+  <style>
+    /* Reset — Electron renders in a Chromium frame with its own defaults */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body, #root {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;   /* canvas manages its own scroll/zoom */
+    }
+
+    body {
+      /* Background matches SURFACE.background from tokens.js
+         to prevent any flash of white before React mounts */
+      background: #0f1117;
+
+      /* Disable default text selection across the app —
+         individual elements re-enable it where appropriate */
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Scrollbar styling for the detail panel and any overflow areas */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f1117;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2f3a;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3a4155;
+    }
+
+    /* Monospace font stack — applied globally, matched in tokens.js */
+    body {
+      font-family:
+        'JetBrains Mono',
+        'Fira Code',
+        'Cascadia Code',
+        'Consolas',
+        monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!--
+    Vite injects the renderer.tsx entry point here during development
+    and replaces this with the bundled script in production.
+  -->
+  <script type="module" src="/renderer.tsx"></script>
+</body>
+</html>

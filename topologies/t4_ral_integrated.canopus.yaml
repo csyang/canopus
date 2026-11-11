@@ -1,0 +1,137 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Canopus Manifest — Topology 4: RAL-Integrated (Register Abstraction Layer)
+# ─────────────────────────────────────────────────────────────────────────────
+# Testbench using UVM RAL (uvm_reg_block) for register access. The adapter
+# is a shared utility object referenced by both the register block and the
+# predictor — it is not a component that owns TLM ports, but a shared object
+# passed by handle. The predictor receives analysis from the monitor and
+# mirrors observed transactions into the register model.
+#
+# Key schema features exercised:
+#   - reg.frontdoor — register model launching sequences via the sequencer
+#   - reg.predictor — predictor updating the register model mirror
+#   - ref.shared_object — adapter referenced by both reg_block and predictor
+#   - Mixed connection semantics in one topology (TLM + REG + REF)
+#   - from_port / to_port could be used here for multi-port disambiguation
+#     (shown on c_mon_pred to illustrate the field)
+# ─────────────────────────────────────────────────────────────────────────────
+
+canopus: "0.1"
+name: ral_integrated
+description: >
+  Single-agent environment with UVM RAL integration. The register block
+  launches frontdoor sequences through the sequencer. The predictor observes
+  transactions via analysis port and mirrors them into the register model.
+  The adapter is a shared object used by both reg_block and predictor.
+tags:
+  - ral
+  - register-model
+  - ref-shared-object
+  - mixed-connection-semantics
+
+components:
+  - id: test
+    type: uvm_test
+    label: reg_test
+    level: 0
+    children:
+      - id: env
+        type: uvm_env
+        label: reg_env
+        level: 1
+        children:
+          - id: agent
+            type: uvm_agent
+            label: dut_agent
+            mode: active
+            level: 2
+            children:
+              - id: sequencer
+                type: uvm_sequencer
+                label: dut_sequencer
+                level: 3
+              - id: driver
+                type: uvm_driver
+                label: dut_driver
+                level: 3
+              - id: monitor
+                type: uvm_monitor
+                label: dut_monitor
+                level: 3
+
+          - id: reg_block
+            type: uvm_reg_block
+            label: dut_reg_block
+            level: 2
+            meta:
+              reg_count: 32
+              base_address: "0x0000_0000"
+
+          - id: adapter
+            type: uvm_reg_adapter
+            label: dut_adapter
+            level: 2
+
+          - id: predictor
+            type: uvm_reg_predictor
+            label: dut_predictor
+            level: 2
+
+          - id: scoreboard
+            type: uvm_scoreboard
+            label: dut_scoreboard
+            level: 2
+
+connections:
+  # TLM: sequencer → driver
+  - id: c_seq_drv
+    from: sequencer
+    to: driver
+    type: tlm.blocking_get
+    transaction: dut_seq_item
+
+  # TLM: monitor → predictor (analysis)
+  # from_port named here to illustrate the field — dut_monitor has one
+  # analysis port feeding two sinks
+  - id: c_mon_pred
+    from: monitor
+    to: predictor
+    type: tlm.analysis
+    transaction: dut_seq_item
+    from_port: analysis_port
+
+  # TLM: monitor → scoreboard (analysis)
+  - id: c_mon_sb
+    from: monitor
+    to: scoreboard
+    type: tlm.analysis
+    transaction: dut_seq_item
+    from_port: analysis_port
+
+  # REG: register block launches frontdoor access sequences via sequencer
+  - id: r_reg_frontdoor
+    from: reg_block
+    to: sequencer
+    type: reg.frontdoor
+    label: frontdoor_access
+
+  # REG: predictor updates the register model mirror
+  - id: r_pred_reg
+    from: predictor
+    to: reg_block
+    type: reg.predictor
+    label: mirror_update
+
+  # REF: adapter is a shared object — both reg_block and predictor reference it
+  # Two edges, one per consumer — the adapter node is the common hub
+  - id: r_adapt_reg
+    from: adapter
+    to: reg_block
+    type: ref.shared_object
+    label: reg2bus
+
+  - id: r_adapt_pred
+    from: adapter
+    to: predictor
+    type: ref.shared_object
+    label: bus2reg

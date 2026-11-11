@@ -1,0 +1,144 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Canopus Manifest — Topology 2: Multi-Agent with Virtual Sequencer
+# ─────────────────────────────────────────────────────────────────────────────
+# Two active agents (APB and AXI) coordinated by a virtual sequencer.
+# Each agent has its own sequencer/driver/monitor. Analysis from both
+# monitors fans into a shared scoreboard and coverage collector.
+# The virtual sequencer holds handles to both sub-sequencers — these are
+# object references, not TLM port connections.
+#
+# Key schema features exercised:
+#   - Multi-agent environment
+#   - ref.handle edges (virtual sequencer → sub-sequencers)
+#   - Analysis fan-in (two sources, one sink) at scoreboard and coverage
+#   - Two distinct transaction types (apb_item, axi_item)
+# ─────────────────────────────────────────────────────────────────────────────
+
+canopus: "0.1"
+name: multi_agent_virtual_sequencer
+description: >
+  Two active agents (APB, AXI) under a virtual sequencer. Demonstrates
+  ref.handle edges for sequencer coordination and analysis fan-in at shared
+  scoreboard and coverage collector.
+tags:
+  - multi-agent
+  - virtual-sequencer
+  - ref-handle
+  - analysis-fan-in
+
+components:
+  - id: test
+    type: uvm_test
+    label: chip_test
+    level: 0
+    children:
+      - id: env
+        type: uvm_env
+        label: chip_env
+        level: 1
+        children:
+          - id: vseqr
+            type: uvm_virtual_sequencer
+            label: virtual_sequencer
+            level: 2
+
+          - id: apb_agent
+            type: uvm_agent
+            label: apb_agent
+            mode: active
+            level: 2
+            children:
+              - id: apb_seqr
+                type: uvm_sequencer
+                label: apb_sequencer
+                level: 3
+              - id: apb_drv
+                type: uvm_driver
+                label: apb_driver
+                level: 3
+              - id: apb_mon
+                type: uvm_monitor
+                label: apb_monitor
+                level: 3
+
+          - id: axi_agent
+            type: uvm_agent
+            label: axi_agent
+            mode: active
+            level: 2
+            children:
+              - id: axi_seqr
+                type: uvm_sequencer
+                label: axi_sequencer
+                level: 3
+              - id: axi_drv
+                type: uvm_driver
+                label: axi_driver
+                level: 3
+              - id: axi_mon
+                type: uvm_monitor
+                label: axi_monitor
+                level: 3
+
+          - id: scoreboard
+            type: uvm_scoreboard
+            label: chip_scoreboard
+            level: 2
+
+          - id: coverage
+            type: uvm_coverage_collector
+            label: chip_coverage
+            level: 2
+
+connections:
+  # TLM: sequencer → driver (one per agent)
+  - id: c_apb_seq_drv
+    from: apb_seqr
+    to: apb_drv
+    type: tlm.blocking_get
+    transaction: apb_seq_item
+
+  - id: c_axi_seq_drv
+    from: axi_seqr
+    to: axi_drv
+    type: tlm.blocking_get
+    transaction: axi_seq_item
+
+  # TLM: monitor → scoreboard (fan-in)
+  - id: c_apb_mon_sb
+    from: apb_mon
+    to: scoreboard
+    type: tlm.analysis
+    transaction: apb_seq_item
+
+  - id: c_axi_mon_sb
+    from: axi_mon
+    to: scoreboard
+    type: tlm.analysis
+    transaction: axi_seq_item
+
+  # TLM: monitor → coverage (fan-in)
+  - id: c_apb_mon_cov
+    from: apb_mon
+    to: coverage
+    type: tlm.analysis
+    transaction: apb_seq_item
+
+  - id: c_axi_mon_cov
+    from: axi_mon
+    to: coverage
+    type: tlm.analysis
+    transaction: axi_seq_item
+
+  # REF: virtual sequencer holds handles to sub-sequencers (not TLM ports)
+  - id: r_vseqr_apb
+    from: vseqr
+    to: apb_seqr
+    type: ref.handle
+    label: apb_seqr_h
+
+  - id: r_vseqr_axi
+    from: vseqr
+    to: axi_seqr
+    type: ref.handle
+    label: axi_seqr_h

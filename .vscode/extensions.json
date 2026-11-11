@@ -1,0 +1,23 @@
+{
+  // Extensions recommended for Canopus development and manifest authoring.
+  // VS Code prompts developers to install these when they open the workspace.
+  "recommendations": [
+    // YAML language server — powers manifest autocomplete via yaml.schemas
+    "redhat.vscode-yaml",
+
+    // TypeScript + JavaScript support (usually built-in, but explicit is safer)
+    "ms-vscode.vscode-typescript-next",
+
+    // ESLint — JavaScript/TypeScript linting
+    "dbaeumer.vscode-eslint",
+
+    // Prettier — code formatting
+    "esbenp.prettier-vscode",
+
+    // Jest — inline test results and debugging
+    "orta.vscode-jest",
+
+    // SVG preview — useful when developing the renderer
+    "jock.svg"
+  ]
+}

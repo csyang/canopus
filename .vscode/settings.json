@@ -1,0 +1,42 @@
+{
+  // ── Canopus manifest YAML autocomplete ────────────────────────────────────
+  // Associates the Canopus JSON Schema with all .canopus.yaml files so VS Code
+  // provides field autocomplete, type checking, and hover documentation while
+  // architects are authoring manifests — without requiring any extensions beyond
+  // the built-in YAML language support (or the redhat.vscode-yaml extension).
+  "yaml.schemas": {
+    "./manifest.schema.json": [
+      "**/*.canopus.yaml",
+      "**/*.canopus.yml",
+      "topologies/**/*.yaml",
+      "topologies/**/*.yml"
+    ]
+  },
+
+  // ── Editor settings for manifest files ────────────────────────────────────
+  "[yaml]": {
+    "editor.insertSpaces":       true,
+    "editor.tabSize":            2,
+    "editor.formatOnSave":       false,
+    "editor.defaultFormatter":   "redhat.vscode-yaml"
+  },
+
+  // ── TypeScript settings ────────────────────────────────────────────────────
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+
+  // ── File associations ──────────────────────────────────────────────────────
+  "files.associations": {
+    "*.canopus.yaml": "yaml",
+    "*.canopus.yml":  "yaml"
+  },
+
+  // ── Explorer exclusions ────────────────────────────────────────────────────
+  "files.exclude": {
+    "dist":         true,
+    "node_modules": true
+  },
+
+  // ── Recommended extensions (shown to new developers) ────────────────────
+  "extensions.ignoreRecommendations": false
+}

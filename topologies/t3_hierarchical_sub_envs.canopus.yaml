@@ -1,0 +1,146 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Canopus Manifest — Topology 3: Hierarchical Sub-Environments
+# ─────────────────────────────────────────────────────────────────────────────
+# SoC-level testbench with two reusable sub-environments (CPU and peripheral)
+# instantiated inside a top chip environment. Each sub-env has its own agent
+# and local scoreboard. A chip-level scoreboard receives analysis from both
+# sub-envs, creating edges that cross compound node boundaries.
+#
+# Key schema features exercised:
+#   - Nested uvm_env (sub-env inside top env) — deepest hierarchy of all five
+#   - Cross-boundary edges (monitor inside sub-env → scoreboard in parent env)
+#   - meta.boundary_cross: true flag for distinct visual rendering
+#   - LCA algorithm exercised at chip_env level for cross-boundary edges
+#   - Global ID uniqueness critical here — ahb_mon and apb_mon exist in
+#     different sub-envs but must have distinct IDs
+# ─────────────────────────────────────────────────────────────────────────────
+
+canopus: "0.1"
+name: hierarchical_sub_envs
+description: >
+  SoC-level testbench with cpu_sub_env and peri_sub_env nested inside
+  chip_env. Intra-sub-env analysis stays local; cross-boundary analysis
+  edges feed the chip-level scoreboard from monitors inside each sub-env.
+tags:
+  - hierarchical
+  - sub-env
+  - cross-boundary
+  - soc-level
+
+components:
+  - id: test
+    type: uvm_test
+    label: chip_test
+    level: 0
+    children:
+      - id: chip_env
+        type: uvm_env
+        label: chip_env
+        level: 1
+        children:
+
+          - id: cpu_env
+            type: uvm_env
+            label: cpu_sub_env
+            level: 2
+            children:
+              - id: ahb_agent
+                type: uvm_agent
+                label: ahb_agent
+                mode: active
+                level: 3
+                children:
+                  - id: ahb_seqr
+                    type: uvm_sequencer
+                    label: ahb_sequencer
+                    level: 4
+                  - id: ahb_drv
+                    type: uvm_driver
+                    label: ahb_driver
+                    level: 4
+                  - id: ahb_mon
+                    type: uvm_monitor
+                    label: ahb_monitor
+                    level: 4
+              - id: cpu_sb
+                type: uvm_scoreboard
+                label: cpu_scoreboard
+                level: 3
+
+          - id: peri_env
+            type: uvm_env
+            label: peri_sub_env
+            level: 2
+            children:
+              - id: apb_agent
+                type: uvm_agent
+                label: apb_agent
+                mode: active
+                level: 3
+                children:
+                  - id: apb_seqr
+                    type: uvm_sequencer
+                    label: apb_sequencer
+                    level: 4
+                  - id: apb_drv
+                    type: uvm_driver
+                    label: apb_driver
+                    level: 4
+                  - id: apb_mon
+                    type: uvm_monitor
+                    label: apb_monitor
+                    level: 4
+              - id: peri_sb
+                type: uvm_scoreboard
+                label: peri_scoreboard
+                level: 3
+
+          - id: chip_sb
+            type: uvm_scoreboard
+            label: chip_scoreboard
+            level: 2
+
+connections:
+  # Intra-agent: sequencer → driver
+  - id: c_ahb_seq_drv
+    from: ahb_seqr
+    to: ahb_drv
+    type: tlm.blocking_get
+    transaction: ahb_seq_item
+
+  - id: c_apb_seq_drv
+    from: apb_seqr
+    to: apb_drv
+    type: tlm.blocking_get
+    transaction: apb_seq_item
+
+  # Intra-sub-env: monitor → local scoreboard
+  - id: c_ahb_mon_cpu_sb
+    from: ahb_mon
+    to: cpu_sb
+    type: tlm.analysis
+    transaction: ahb_seq_item
+
+  - id: c_apb_mon_peri_sb
+    from: apb_mon
+    to: peri_sb
+    type: tlm.analysis
+    transaction: apb_seq_item
+
+  # Cross-boundary: monitor inside sub-env → chip-level scoreboard
+  # LCA for both edges is chip_env — edges are declared there by the transform
+  - id: c_ahb_mon_chip_sb
+    from: ahb_mon
+    to: chip_sb
+    type: tlm.analysis
+    transaction: ahb_seq_item
+    meta:
+      boundary_cross: true
+
+  - id: c_apb_mon_chip_sb
+    from: apb_mon
+    to: chip_sb
+    type: tlm.analysis
+    transaction: apb_seq_item
+    meta:
+      boundary_cross: true

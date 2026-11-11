@@ -1,0 +1,81 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Canopus Manifest — Topology 1: Canonical Single-Agent
+# ─────────────────────────────────────────────────────────────────────────────
+# The textbook UVM testbench pattern. Single active agent driving and
+# monitoring one interface. Analysis broadcast from monitor to both
+# scoreboard and coverage collector.
+#
+# Key schema features exercised:
+#   - Baseline compound node nesting (test → env → agent)
+#   - tlm.blocking_get (sequencer → driver)
+#   - tlm.analysis broadcast (one source, two sinks)
+#   - level field for abstraction filtering
+# ─────────────────────────────────────────────────────────────────────────────
+
+canopus: "0.1"
+name: canonical_single_agent
+description: >
+  Textbook single active agent environment. One sequencer drives one driver;
+  one monitor broadcasts to a scoreboard and a coverage collector.
+tags:
+  - baseline
+  - single-agent
+  - analysis-broadcast
+
+components:
+  - id: test
+    type: uvm_test
+    label: my_test
+    level: 0
+    children:
+      - id: env
+        type: uvm_env
+        label: my_env
+        level: 1
+        children:
+          - id: agent
+            type: uvm_agent
+            label: my_agent
+            mode: active
+            level: 2
+            children:
+              - id: sequencer
+                type: uvm_sequencer
+                label: my_sequencer
+                level: 3
+              - id: driver
+                type: uvm_driver
+                label: my_driver
+                level: 3
+              - id: monitor
+                type: uvm_monitor
+                label: my_monitor
+                level: 3
+          - id: scoreboard
+            type: uvm_scoreboard
+            label: my_scoreboard
+            level: 2
+          - id: coverage
+            type: uvm_coverage_collector
+            label: my_coverage
+            level: 2
+
+connections:
+  - id: c_seq_drv
+    from: sequencer
+    to: driver
+    type: tlm.blocking_get
+    transaction: my_seq_item
+    label: seq_item_port
+
+  - id: c_mon_sb
+    from: monitor
+    to: scoreboard
+    type: tlm.analysis
+    transaction: my_seq_item
+
+  - id: c_mon_cov
+    from: monitor
+    to: coverage
+    type: tlm.analysis
+    transaction: my_seq_item

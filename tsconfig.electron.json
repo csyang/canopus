@@ -1,0 +1,26 @@
+{
+  "$comment": "tsconfig.electron.json — compiles the Electron main process and preload only. The renderer (React) is compiled by Vite using tsconfig.json.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module":           "CommonJS",
+    "moduleResolution": "Node",
+    "outDir":           "./dist",
+    "jsx":              "react-jsx",
+    "lib":              ["ES2022"]
+  },
+  "include": [
+    "electron/**/*.ts",
+    "types.ts",
+    "validate.js",
+    "manifest-to-elk.js",
+    "render-static.js",
+    "cli.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "renderer/**",
+    "renderer.tsx",
+    "vite.config.ts"
+  ]
+}

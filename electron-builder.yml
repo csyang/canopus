@@ -1,0 +1,115 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# electron-builder.yml
+# Canopus — Application Packaging Configuration
+#
+# Produces platform-native installers from the compiled dist/ directory.
+#
+# Build sequence:
+#   npm run build          → tsc + vite → dist/electron/ + dist/renderer/
+#   npm run package        → electron-builder reads this file → dist/packages/
+#
+# Per-platform output:
+#   macOS  → dist/packages/Canopus-0.1.0.dmg  (+ .zip for auto-update)
+#   Windows→ dist/packages/Canopus Setup 0.1.0.exe  (NSIS installer)
+#   Linux  → dist/packages/Canopus-0.1.0.AppImage
+# ─────────────────────────────────────────────────────────────────────────────
+
+appId:       com.canopus.app
+productName: Canopus
+
+# ── Source files included in the package ────────────────────────────────────
+# electron-builder starts from the project root. We include only what
+# the packaged app needs at runtime — source files are excluded.
+
+files:
+  - dist/electron/**/*
+  - dist/renderer/**/*
+  - assets/**/*
+  - node_modules/**/*
+  - package.json
+
+# Ensure the compiled main entry point is used, not cli.js
+extraMetadata:
+  main: dist/electron/main.js
+
+# ── Output directory ─────────────────────────────────────────────────────────
+directories:
+  output:         dist/packages
+  buildResources: assets           # electron-builder looks here for icons
+
+# ── File associations ────────────────────────────────────────────────────────
+# Register Canopus as the default handler for .canopus.yaml files.
+# On macOS: registered in Info.plist (double-click opens Canopus)
+# On Windows: registered in HKEY_CLASSES_ROOT via the NSIS installer
+# On Linux: registered via the .desktop file mime type
+
+fileAssociations:
+  - ext:         canopus.yaml
+    name:        Canopus Manifest
+    description: Canopus TLM Topology Manifest
+    role:        Editor
+    mimeType:    application/x-canopus-manifest
+
+  - ext:         canopus.yml
+    name:        Canopus Manifest
+    description: Canopus TLM Topology Manifest
+    role:        Editor
+    mimeType:    application/x-canopus-manifest
+
+# ── macOS ────────────────────────────────────────────────────────────────────
+mac:
+  category:   public.app-category.developer-tools
+  # electron-builder will convert icon.iconset/ to .icns on macOS build hosts.
+  # On non-macOS hosts, provide icon_1024x1024.png and electron-builder uses it.
+  icon:       assets/icons/icon.iconset
+  hardenedRuntime:    true
+  gatekeeperAssess:   false
+  # entitlements and entitlementsInherit required for hardened runtime + notarisation
+  entitlements:          build/entitlements.mac.plist
+  entitlementsInherit:   build/entitlements.mac.plist
+
+  target:
+    - target: dmg
+      arch:   [x64, arm64]       # Intel and Apple Silicon
+    - target: zip
+      arch:   [x64, arm64]       # Required for auto-update (Squirrel.Mac)
+
+dmg:
+  title:       "Canopus ${version}"
+  background:  assets/dmg-background.png   # optional — plain dark if absent
+  contents:
+    - x: 180
+      y: 180
+      type: file
+    - x: 480
+      y: 180
+      type: link
+      path: /Applications
+
+# ── Windows ──────────────────────────────────────────────────────────────────
+win:
+  icon:        assets/icons/icon.ico
+  target:
+    - target: nsis
+      arch:   [x64]
+
+nsis:
+  oneClick:              false    # show installer wizard
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName:          Canopus
+  installerIcon:         assets/icons/icon.ico
+  uninstallerIcon:       assets/icons/icon.ico
+  license:               LICENSE.md
+
+# ── Linux ────────────────────────────────────────────────────────────────────
+linux:
+  # electron-builder reads individual PNGs from a directory for Linux icons.
+  # Naming convention: icon_NxN.png in assets/icons/
+  icon:        assets/icons
+  category:    Development
+  description: TLM topology visualiser for UVM-based hardware verification
+
+  target:
+    - target: AppImage    # universal, no install needed

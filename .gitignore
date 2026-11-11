@@ -1,0 +1,38 @@
+# ── Build outputs ─────────────────────────────────────────────────────────────
+dist/
+dist/packages/
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Electron builder cache ────────────────────────────────────────────────────
+.electron-builder-cache/
+
+# ── Environment and secrets ───────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.release.env         # NFS path config — set per machine, never committed
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+*.app
+
+# ── Windows ───────────────────────────────────────────────────────────────────
+Thumbs.db
+
+# ── Editor ────────────────────────────────────────────────────────────────────
+# Keep .vscode/ — it contains the schema wiring and extension recommendations
+# that benefit everyone working on the project. Exclude personal settings only.
+.vscode/launch.json
+
+# ── Test coverage ─────────────────────────────────────────────────────────────
+coverage/
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+*.log
+
+# ── TypeScript incremental build info ─────────────────────────────────────────
+*.tsbuildinfo

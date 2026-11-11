@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://canopus/schemas/manifest.v0.1.json",
+  "title": "Canopus Manifest",
+  "description": "Schema for a Canopus TLM topology manifest file (v0.1).",
+  "type": "object",
+  "required": ["canopus", "name", "components", "connections"],
+  "additionalProperties": false,
+
+  "properties": {
+
+    "canopus": {
+      "type": "string",
+      "const": "0.1",
+      "description": "Canopus schema version. Must be '0.1'."
+    },
+
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+      "description": "Unique machine-readable topology name. Letters, digits, underscores; must start with a letter."
+    },
+
+    "description": {
+      "type": "string",
+      "description": "Optional human-readable narrative describing the topology."
+    },
+
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Optional tags for filtering and grouping topologies."
+    },
+
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/component" },
+      "description": "Hierarchical tree of UVM components. Containment is expressed through nesting; IDs must be globally unique across the entire manifest."
+    },
+
+    "connections": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/connection" },
+      "description": "Flat list of directed connections between components. All from/to values must reference IDs declared in components."
+    }
+
+  },
+
+  "$defs": {
+
+    "component": {
+      "type": "object",
+      "title": "UVM Component",
+      "required": ["id", "type"],
+      "additionalProperties": false,
+      "properties": {
+
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+          "description": "Globally unique component identifier. Used as the reference target in connection from/to fields. Letters, digits, underscores; must start with a letter."
+        },
+
+        "type": {
+          "$ref": "#/$defs/componentType",
+          "description": "UVM component type from the Canopus taxonomy."
+        },
+
+        "label": {
+          "type": "string",
+          "description": "Optional display name or SystemVerilog class name shown in the visualisation."
+        },
+
+        "mode": {
+          "type": "string",
+          "enum": ["active", "passive"],
+          "description": "Agent operating mode. Only meaningful on uvm_agent components; ignored on all others. Defaults to active if omitted."
+        },
+
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Abstraction level for depth-based filtering. 0 = top-level test; higher integers = deeper in the hierarchy."
+        },
+
+        "meta": {
+          "type": "object",
+          "description": "Free-form key-value metadata for display and tooling. Values may be strings, numbers, booleans, or arrays of strings.",
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        },
+
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/component" },
+          "description": "Nested child components. Presence of this field makes the component a compound (container) node in the visualisation."
+        }
+
+      }
+    },
+
+    "connection": {
+      "type": "object",
+      "title": "TLM / REF / REG Connection",
+      "required": ["id", "from", "to", "type"],
+      "additionalProperties": false,
+      "properties": {
+
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+          "description": "Unique connection identifier."
+        },
+
+        "from": {
+          "type": "string",
+          "description": "ID of the source component. Must reference an ID declared in the components tree."
+        },
+
+        "from_port": {
+          "type": "string",
+          "description": "Optional named port on the source component. Used when a component has multiple ports of the same type (e.g. a monitor with several analysis ports)."
+        },
+
+        "to": {
+          "type": "string",
+          "description": "ID of the target component. Must reference an ID declared in the components tree."
+        },
+
+        "to_port": {
+          "type": "string",
+          "description": "Optional named port on the target component."
+        },
+
+        "type": {
+          "$ref": "#/$defs/connectionType",
+          "description": "Connection type from the Canopus taxonomy. Drives port-side assignment, edge colour, and dash pattern in the visualisation."
+        },
+
+        "transaction": {
+          "type": "string",
+          "description": "Optional transaction type name (e.g. apb_seq_item). Shown as an edge label when annotation is enabled."
+        },
+
+        "label": {
+          "type": "string",
+          "description": "Optional display label override. Shown instead of transaction when both are present."
+        },
+
+        "meta": {
+          "type": "object",
+          "description": "Free-form key-value metadata. Use boundary_cross: true to mark edges that cross compound-node boundaries for distinct visual rendering.",
+          "properties": {
+            "boundary_cross": {
+              "type": "boolean",
+              "description": "Set to true for analysis edges that cross sub-environment boundaries. Triggers dashed edge rendering."
+            }
+          },
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "string" },
+              { "type": "number" },
+              { "type": "boolean" },
+              { "type": "array", "items": { "type": "string" } }
+            ]
+          }
+        }
+
+      }
+    },
+
+    "componentType": {
+      "type": "string",
+      "title": "Component Type",
+      "description": "Canopus component type taxonomy.",
+      "enum": [
+        "uvm_test",
+        "uvm_env",
+        "uvm_agent",
+        "uvm_sequencer",
+        "uvm_virtual_sequencer",
+        "uvm_driver",
+        "uvm_monitor",
+        "uvm_scoreboard",
+        "uvm_coverage_collector",
+        "uvm_subscriber",
+        "uvm_protocol_checker",
+        "uvm_reg_block",
+        "uvm_reg_adapter",
+        "uvm_reg_predictor",
+        "uvm_component"
+      ]
+    },
+
+    "connectionType": {
+      "type": "string",
+      "title": "Connection Type",
+      "description": "Canopus connection type taxonomy. Namespaced into tlm (TLM port connections), ref (object references), and reg (register model connections).",
+      "enum": [
+        "tlm.blocking_get",
+        "tlm.blocking_put",
+        "tlm.nonblocking_put",
+        "tlm.nonblocking_get",
+        "tlm.transport",
+        "tlm.nb_transport",
+        "tlm.analysis",
+        "tlm.fifo",
+        "ref.handle",
+        "ref.shared_object",
+        "reg.frontdoor",
+        "reg.backdoor",
+        "reg.adapter",
+        "reg.predictor"
+      ]
+    }
+
+  }
+}

@@ -77,6 +77,7 @@ node cli.js render topologies/t3_hierarchical_sub_envs.canopus.yaml
 | [Authoring Guide](docs/authoring-guide.md) | Architects | How to write `.canopus.yaml` manifest files |
 | [Reference](docs/reference.md) | All | Component and connection type taxonomy |
 | [Schema Changelog](docs/schema-changelog.md) | All | Schema version history and migration notes |
+| [Prior-Art Survey](docs/prior-art.md) | All | What already exists, where Canopus differs, and its risks |
 
 ---
 

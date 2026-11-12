@@ -187,6 +187,7 @@ Coverage matrix validated: all five archetypes collectively exercise every schem
 - [x] `docs/authoring-guide.md` — short banner header; full architect guide; VS Code schema setup; common mistakes table; complete worked example
 - [x] `docs/reference.md` — short banner header; all 15 component types; all 14 connection types; visual colour family summary
 - [x] `docs/schema-changelog.md` — v0.1 field inventory; design decisions recorded; v0.2/v0.3 candidates; migration policy
+- [x] `docs/prior-art.md` — prior-art and value survey (2026-11-11): commercial and free UVM topology tools, metadata-driven generators, RTL/IP-XACT diagram tools, SystemC/TLM research; feature comparison, gaps, risks, novelty assessment, search log, sources
 
 ### 3.10 TypeScript Infrastructure
 - [x] `types.ts` — complete manifest data model as TypeScript interfaces: `CanopusManifest`, `Component`, `Connection`, `ComponentType`, `ConnectionType`, `ConnectionFamily`, `CanopusNodeMeta`, `CanopusEdgeMeta`, `CanopusInteractionState`, `ValidationResult`; `connectionFamily()` helper; `COMPOUND_COMPONENT_TYPES` const set
@@ -260,6 +261,9 @@ Listed roughly in implementation order.
 | OQ6 | **Force-directed layout mode** — Defined as an option for exploratory/unknown topologies but not yet wired into the schema or transform. Should `layout_hint: force` be a manifest-level field? | Low — future feature |
 | OQ7 | **Schema versioning strategy** — Migration policy defined in `docs/schema-changelog.md`: two-version support window, warn-not-error on old versions, `canopus migrate` command planned, no breaking changes without major version bump. | Low — policy set, `migrate` command not yet implemented |
 | OQ8 | **AI-agent authoring** — A stated long-term goal. What constraints does this place on the manifest schema now? (e.g. should component IDs be machine-generated UUIDs or human-readable slugs?) | Low — future phase |
+| OQ9 | **Manifest drift** — The manifest is hand-authored, so it can disagree with the real testbench; every comparable tool derives its picture from code or simulation. Needs an import path (e.g. from `print_topology` output or static parsing) and/or a diff mode (manifest intent vs extracted topology). Identified as the main value risk in `docs/prior-art.md`. | High |
+| OQ10 | **Positioning** — Evidence in `docs/prior-art.md` supports "design-time architecture and documentation tool" more than "UVM debug viewer". Decide before further investment. | Medium |
+| OQ11 | **Validation status** — Unit tests (60), the CLI, and the Electron app have not yet been executed end-to-end, and no real testbench has been modeled (see OQ5). Run and fix before relying on any claim about Canopus. | High |
 
 ---
 
@@ -307,6 +311,7 @@ Listed roughly in implementation order.
 | `docs/authoring-guide.md` | `canopus/docs/authoring-guide.md` | Complete |
 | `docs/reference.md` | `canopus/docs/reference.md` | Complete |
 | `docs/schema-changelog.md` | `canopus/docs/schema-changelog.md` | Complete |
+| `docs/prior-art.md` | `canopus/docs/prior-art.md` | Complete |
 
 ---
 
